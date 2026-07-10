@@ -1,5 +1,6 @@
 package com.afyasmart.backend.service.impl;
 
+import com.afyasmart.backend.dto.AccountResponse;
 import com.afyasmart.backend.dto.LoginRequest;
 import com.afyasmart.backend.dto.RegisterRequest;
 import com.afyasmart.backend.entity.Account;
@@ -18,7 +19,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Account register(RegisterRequest request) {
+    public AccountResponse register(RegisterRequest request) {
 
         if (accountRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email is already registered.");
@@ -33,7 +34,16 @@ public class AuthServiceImpl implements AuthService {
                 .enabled(true)
                 .build();
 
-        return accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+
+        return AccountResponse.builder()
+                .id(savedAccount.getId())
+                .firstName(savedAccount.getFirstName())
+                .lastName(savedAccount.getLastName())
+                .email(savedAccount.getEmail())
+                .role(savedAccount.getRole())
+                .enabled(savedAccount.getEnabled())
+                .build();
     }
 
     @Override

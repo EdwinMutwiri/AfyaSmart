@@ -1,10 +1,12 @@
 package com.afyasmart.backend.controller;
 
+import com.afyasmart.backend.common.ApiResponse;
 import com.afyasmart.backend.dto.PatientDTO;
 import com.afyasmart.backend.entity.Patient;
 import com.afyasmart.backend.service.PatientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +20,18 @@ public class PatientController {
     private final PatientService patientService;
 
     @PostMapping
-    public Patient createPatient(@Valid @RequestBody PatientDTO dto) {
-        return patientService.createPatient(dto);
+    public ResponseEntity<ApiResponse<Patient>> createPatient(
+            @Valid @RequestBody PatientDTO dto) {
+
+        Patient patient = patientService.createPatient(dto);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Patient>builder()
+                        .success(true)
+                        .message("Patient created successfully")
+                        .data(patient)
+                        .build()
+        );
     }
 
     @GetMapping

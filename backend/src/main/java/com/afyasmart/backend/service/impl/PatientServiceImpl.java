@@ -2,6 +2,8 @@ package com.afyasmart.backend.service.impl;
 
 import com.afyasmart.backend.dto.PatientDTO;
 import com.afyasmart.backend.entity.Patient;
+import com.afyasmart.backend.exception.DuplicateResourceException;
+import com.afyasmart.backend.exception.ResourceNotFoundException;
 import com.afyasmart.backend.repository.PatientRepository;
 import com.afyasmart.backend.service.PatientService;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,7 +22,7 @@ public class PatientServiceImpl implements PatientService {
     public Patient createPatient(PatientDTO dto) {
 
         if (patientRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("A patient with this email already exists.");
+            throw new DuplicateResourceException("Patient email already exists.");
         }
 
         Patient patient = Patient.builder()
@@ -50,7 +52,7 @@ public class PatientServiceImpl implements PatientService {
     public Patient getPatientById(Long id) {
         return patientRepository.findById(id)
                 .orElseThrow(() ->
-                        new EntityNotFoundException("Patient not found"));
+                        new ResourceNotFoundException("Patient not found."));
     }
 
     @Override

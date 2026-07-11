@@ -2,6 +2,7 @@ package com.afyasmart.backend.service.impl;
 
 import com.afyasmart.backend.dto.AccountResponse;
 import com.afyasmart.backend.dto.LoginRequest;
+import com.afyasmart.backend.dto.LoginResponse;
 import com.afyasmart.backend.dto.RegisterRequest;
 import com.afyasmart.backend.entity.Account;
 import com.afyasmart.backend.exception.DuplicateResourceException;
@@ -47,7 +48,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Account login(LoginRequest request) {
-        throw new UnsupportedOperationException("Login will be implemented next.");
+    public LoginResponse login(LoginRequest request) {
+
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return LoginResponse.builder()
+                .id(account.getId())
+                .firstName(account.getFirstName())
+                .lastName(account.getLastName())
+                .email(account.getEmail())
+                .role(account.getRole())
+                .enabled(account.getEnabled())
+                .message("Login successful")
+                .build();
     }
 }

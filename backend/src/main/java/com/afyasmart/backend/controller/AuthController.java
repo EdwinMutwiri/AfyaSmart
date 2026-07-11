@@ -2,16 +2,14 @@ package com.afyasmart.backend.controller;
 
 import com.afyasmart.backend.common.ApiResponse;
 import com.afyasmart.backend.dto.AccountResponse;
+import com.afyasmart.backend.dto.LoginRequest;
+import com.afyasmart.backend.dto.LoginResponse;
 import com.afyasmart.backend.dto.RegisterRequest;
 import com.afyasmart.backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +30,21 @@ public class AuthController {
                         .success(true)
                         .message("Account created successfully")
                         .data(account)
+                        .build()
+        );
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        LoginResponse login = authService.login(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<LoginResponse>builder()
+                        .success(true)
+                        .message("Login successful")
+                        .data(login)
                         .build()
         );
     }

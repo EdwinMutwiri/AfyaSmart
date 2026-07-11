@@ -1,103 +1,125 @@
-import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { register } from "../services/authService";
 
 export default function RegisterPage() {
 
-    const {
+    const navigate = useNavigate();
 
-        register,
+    const [form, setForm] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        role: "PATIENT"
+    });
 
-        handleSubmit
+    const [loading, setLoading] = useState(false);
 
-    } = useForm();
+    const handleChange = (e) => {
+        setForm({
+            ...form,
+            [e.target.name]: e.target.value
+        });
+    };
 
-    const onSubmit = (data) => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-        console.log(data);
+        try {
 
+            setLoading(true);
+
+            await register(form);
+
+            alert("Registration Successful!");
+
+            navigate("/login");
+
+        } catch (error) {
+
+            alert(
+                error.response?.data?.message ||
+                "Registration Failed"
+            );
+
+        } finally {
+
+            setLoading(false);
+
+        }
     };
 
     return (
 
-        <div className="min-h-screen flex justify-center items-center bg-slate-100">
+        <div className="min-h-screen bg-slate-100 flex justify-center items-center">
 
-            <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg p-10">
+            <div className="bg-white p-10 rounded-3xl shadow-xl w-[450px]">
 
-                <h1 className="text-3xl font-bold text-center">
+                <h1 className="text-3xl font-bold text-center text-blue-600">
 
                     Create Account
 
                 </h1>
 
                 <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="space-y-4 mt-8">
+                    onSubmit={handleSubmit}
+                    className="space-y-4 mt-8"
+                >
 
                     <input
-                        {...register("firstName")}
+                        name="firstName"
+                        value={form.firstName}
+                        onChange={handleChange}
                         placeholder="First Name"
-                        className="w-full border rounded-xl px-4 py-3"
+                        className="w-full border rounded-xl p-3"
                     />
 
                     <input
-                        {...register("lastName")}
+                        name="lastName"
+                        value={form.lastName}
+                        onChange={handleChange}
                         placeholder="Last Name"
-                        className="w-full border rounded-xl px-4 py-3"
+                        className="w-full border rounded-xl p-3"
                     />
 
                     <input
-                        {...register("email")}
+                        name="email"
+                        type="email"
+                        value={form.email}
+                        onChange={handleChange}
                         placeholder="Email"
-                        className="w-full border rounded-xl px-4 py-3"
+                        className="w-full border rounded-xl p-3"
                     />
 
                     <input
-                        {...register("password")}
+                        name="password"
                         type="password"
+                        value={form.password}
+                        onChange={handleChange}
                         placeholder="Password"
-                        className="w-full border rounded-xl px-4 py-3"
+                        className="w-full border rounded-xl p-3"
                     />
-
-                    <select
-                        {...register("role")}
-                        className="w-full border rounded-xl px-4 py-3">
-
-                        <option value="PATIENT">
-
-                            Patient
-
-                        </option>
-
-                        <option value="DOCTOR">
-
-                            Doctor
-
-                        </option>
-
-                    </select>
 
                     <button
-
-                        className="w-full bg-green-600 text-white rounded-xl py-3 hover:bg-green-700"
-
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-green-600 text-white rounded-xl p-3 hover:bg-green-700"
                     >
-
-                        Register
-
+                        {loading ? "Creating..." : "Register"}
                     </button>
 
                 </form>
 
-                <p className="text-center mt-6">
+                <p className="text-center mt-5">
 
                     Already have an account?
 
                     <Link
+                        className="text-blue-600 ml-2"
                         to="/login"
-                        className="text-blue-600 ml-2">
-
+                    >
                         Login
-
                     </Link>
 
                 </p>
@@ -107,5 +129,4 @@ export default function RegisterPage() {
         </div>
 
     );
-
 }

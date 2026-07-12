@@ -115,6 +115,13 @@ export default function Dashboard() {
                     Assessment History
                 </Link>
 
+                <Link
+                    to="/appointments"
+                    className="inline-block ml-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-xl"
+                >
+                    Book Appointment
+                </Link>
+
             </div>
 
         </div>

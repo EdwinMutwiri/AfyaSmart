@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
 import Assessment from "./pages/Assessment";
 import AssessmentHistory from "./pages/AssessmentHistory";
+import AppointmentPage from "./pages/AppointmentPage";
 
 function App() {
     return (
@@ -19,6 +20,11 @@ function App() {
                 path="/assessment-history"
                 element={<AssessmentHistory />}
             />
+            <Route
+                path="/appointments"
+                element={<AppointmentPage />}
+            />
+
 
         </Routes>
     );

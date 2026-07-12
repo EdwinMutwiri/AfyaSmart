@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getLatestAssessment } from "../services/assessmentService";
+import AppLayout from "../components/layout/AppLayout";
 
 export default function Dashboard() {
 
@@ -35,98 +36,101 @@ export default function Dashboard() {
 
     };
 
-    return (
 
-        <div className="min-h-screen bg-slate-100">
 
-            <div className="bg-blue-600 text-white p-6 shadow-lg">
+        return (
 
-                <h1 className="text-3xl font-bold">
-                    AfyaSmart Dashboard
-                </h1>
+            <AppLayout>
 
-                <p className="mt-2">
-                    Welcome {user?.firstName} 👋
-                </p>
+                <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg">
 
-            </div>
+                    <h1 className="text-3xl font-bold">
+                        AfyaSmart Dashboard
+                    </h1>
 
-            <div className="grid md:grid-cols-4 gap-6 p-8">
-
-                <Card
-                    title="Health Score"
-                    value={assessment?.healthScore ?? "--"}
-                />
-
-                <Card
-                    title="BMI"
-                    value={assessment?.bmi ?? "--"}
-                />
-
-                <Card
-                    title="Risk Level"
-                    value={assessment?.riskLevel ?? "--"}
-                />
-
-                <Card
-                    title="Status"
-                    value={
-                        assessment
-                            ? "Assessment Complete"
-                            : "Pending"
-                    }
-                />
-
-            </div>
-
-            {assessment && (
-
-                <div className="mx-8 bg-white rounded-2xl shadow-lg p-6">
-
-                    <h2 className="text-xl font-bold text-blue-600">
-
-                        Latest Recommendation
-
-                    </h2>
-
-                    <p className="mt-4 text-gray-700">
-
-                        {assessment.recommendation}
-
+                    <p className="mt-2">
+                        Welcome {user?.firstName} 👋
                     </p>
 
                 </div>
 
-            )}
+                <div className="grid md:grid-cols-4 gap-6 mt-8">
 
-            <div className="p-8">
+                    <Card
+                        title="Health Score"
+                        value={assessment?.healthScore ?? "--"}
+                    />
 
-                <Link
-                    to="/assessment"
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl"
-                >
-                    Start New Health Assessment
-                </Link>
+                    <Card
+                        title="BMI"
+                        value={assessment?.bmi ?? "--"}
+                    />
 
-                <Link
-                    to="/assessment-history"
-                    className="ml-4 inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl"
-                >
-                    Assessment History
-                </Link>
+                    <Card
+                        title="Risk Level"
+                        value={assessment?.riskLevel ?? "--"}
+                    />
 
-                <Link
-                    to="/appointments"
-                    className="inline-block ml-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-xl"
-                >
-                    Book Appointment
-                </Link>
+                    <Card
+                        title="Status"
+                        value={
+                            assessment
+                                ? "Assessment Complete"
+                                : "Pending"
+                        }
+                    />
 
-            </div>
+                </div>
 
-        </div>
+                {assessment && (
 
-    );
+                    <div className="mt-8 bg-white rounded-2xl shadow-lg p-6">
+
+                        <h2 className="text-xl font-bold text-blue-600">
+
+                            Latest Recommendation
+
+                        </h2>
+
+                        <p className="mt-4 text-gray-700">
+
+                            {assessment.recommendation}
+
+                        </p>
+
+                    </div>
+
+                )}
+
+                <div className="mt-8 flex flex-wrap gap-4">
+
+                    <Link
+                        to="/assessment"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl"
+                    >
+                        Start New Health Assessment
+                    </Link>
+
+                    <Link
+                        to="/assessment-history"
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl"
+                    >
+                        Assessment History
+                    </Link>
+
+                    <Link
+                        to="/appointments"
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-xl"
+                    >
+                        Book Appointment
+                    </Link>
+
+                </div>
+
+            </AppLayout>
+
+        );
+
 
 }
 

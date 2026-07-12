@@ -4,6 +4,8 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
+import Assessment from "./pages/Assessment";
+import AssessmentHistory from "./pages/AssessmentHistory";
 
 function App() {
     return (
@@ -12,6 +14,12 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/assessment" element={<Assessment />} />
+            <Route
+                path="/assessment-history"
+                element={<AssessmentHistory />}
+            />
+
         </Routes>
     );
 }

@@ -10,6 +10,8 @@ import com.afyasmart.backend.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class HealthAssessmentServiceImpl implements HealthAssessmentService {
@@ -56,7 +58,25 @@ public class HealthAssessmentServiceImpl implements HealthAssessmentService {
                 .healthScore(score)
                 .riskLevel(risk)
                 .recommendation(recommendation)
+                .assessmentDate(assessment.getAssessmentDate())
                 .build();
+    }
+
+    @Override
+    public HealthAssessmentResponse getLatestAssessment(Long accountId) {
+
+        HealthAssessment assessment = repository
+                .findTopByAccountIdOrderByAssessmentDateDesc(accountId)
+                .orElseThrow(() -> new RuntimeException("No assessments found."));
+
+        return HealthAssessmentResponse.builder()
+                .bmi(assessment.getBmi())
+                .healthScore(assessment.getHealthScore())
+                .riskLevel(assessment.getRiskLevel())
+                .recommendation(assessment.getRecommendation())
+                .assessmentDate(assessment.getAssessmentDate())
+                .build();
+
     }
 
     private double calculateBMI(double weight, double heightCm) {
@@ -134,6 +154,23 @@ public class HealthAssessmentServiceImpl implements HealthAssessmentService {
             advice.append("Excellent health! Keep maintaining your lifestyle.");
 
         return advice.toString();
+
+    }
+
+    @Override
+    public List<HealthAssessmentResponse> getAssessmentHistory(Long accountId) {
+
+        return repository
+                .findByAccountIdOrderByAssessmentDateDesc(accountId)
+                .stream()
+                .map(assessment -> HealthAssessmentResponse.builder()
+                        .bmi(assessment.getBmi())
+                        .healthScore(assessment.getHealthScore())
+                        .riskLevel(assessment.getRiskLevel())
+                        .recommendation(assessment.getRecommendation())
+                        .assessmentDate(assessment.getAssessmentDate())
+                        .build())
+                .toList();
 
     }
 

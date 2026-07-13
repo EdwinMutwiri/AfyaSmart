@@ -1,19 +1,19 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import AppLayout from "../components/layout/AppLayout";
 import { bookAppointment } from "../services/appointmentService";
 
 export default function AppointmentPage() {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const [form, setForm] = useState({
-        doctorName: "",
-        specialization: "",
-        appointmentDate: "",
-        appointmentTime: "",
-        reason: ""
-    });
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const selectedDoctor = location.state;
 
     const doctors = [
+
         {
             name: "Dr. Mercy Wanjiku",
             specialization: "General Medicine"
@@ -34,16 +34,35 @@ export default function AppointmentPage() {
             name: "Dr. Faith Achieng",
             specialization: "Gynecology"
         }
+
     ];
+
+    const [form, setForm] = useState({
+
+        doctorName: selectedDoctor?.doctorName || "",
+
+        specialization: selectedDoctor?.specialization || "",
+
+        appointmentDate: "",
+
+        appointmentTime: "",
+
+        reason: ""
+
+    });
 
     const handleDoctorChange = (e) => {
 
         const doctor = doctors.find(d => d.name === e.target.value);
 
         setForm({
+
             ...form,
+
             doctorName: doctor.name,
+
             specialization: doctor.specialization
+
         });
 
     };
@@ -51,8 +70,11 @@ export default function AppointmentPage() {
     const handleChange = (e) => {
 
         setForm({
+
             ...form,
+
             [e.target.name]: e.target.value
+
         });
 
     };
@@ -81,13 +103,7 @@ export default function AppointmentPage() {
 
             alert("Appointment booked successfully!");
 
-            setForm({
-                doctorName: "",
-                specialization: "",
-                appointmentDate: "",
-                appointmentTime: "",
-                reason: ""
-            });
+            navigate("/dashboard");
 
         } catch (err) {
 
@@ -99,7 +115,7 @@ export default function AppointmentPage() {
 
     return (
 
-        <div className="min-h-screen bg-slate-100 p-10">
+        <AppLayout>
 
             <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8">
 
@@ -109,28 +125,58 @@ export default function AppointmentPage() {
 
                 </h1>
 
+                {selectedDoctor && (
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+
+                        <h2 className="font-bold text-blue-700">
+
+                            Selected Doctor
+
+                        </h2>
+
+                        <p className="mt-2 text-lg">
+
+                            {form.doctorName}
+
+                        </p>
+
+                    </div>
+
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-5">
 
-                    <select
-                        className="w-full border rounded-xl p-3"
-                        onChange={handleDoctorChange}
-                        value={form.doctorName}
-                    >
+                    {!selectedDoctor && (
 
-                        <option>Select Doctor</option>
+                        <select
+                            className="w-full border rounded-xl p-3"
+                            onChange={handleDoctorChange}
+                            value={form.doctorName}
+                        >
 
-                        {doctors.map((doctor) => (
+                            <option value="">
 
-                            <option
-                                key={doctor.name}
-                                value={doctor.name}
-                            >
-                                {doctor.name}
+                                Select Doctor
+
                             </option>
 
-                        ))}
+                            {doctors.map((doctor) => (
 
-                    </select>
+                                <option
+                                    key={doctor.name}
+                                    value={doctor.name}
+                                >
+
+                                    {doctor.name}
+
+                                </option>
+
+                            ))}
+
+                        </select>
+
+                    )}
 
                     <input
                         className="w-full border rounded-xl p-3 bg-gray-100"
@@ -144,6 +190,7 @@ export default function AppointmentPage() {
                         className="w-full border rounded-xl p-3"
                         onChange={handleChange}
                         value={form.appointmentDate}
+                        required
                     />
 
                     <input
@@ -152,28 +199,32 @@ export default function AppointmentPage() {
                         className="w-full border rounded-xl p-3"
                         onChange={handleChange}
                         value={form.appointmentTime}
+                        required
                     />
 
                     <textarea
                         name="reason"
-                        className="w-full border rounded-xl p-3"
                         rows="4"
                         placeholder="Reason for appointment"
+                        className="w-full border rounded-xl p-3"
                         onChange={handleChange}
                         value={form.reason}
+                        required
                     />
 
                     <button
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl"
                     >
-                        Book Appointment
+
+                        Confirm Appointment
+
                     </button>
 
                 </form>
 
             </div>
 
-        </div>
+        </AppLayout>
 
     );
 

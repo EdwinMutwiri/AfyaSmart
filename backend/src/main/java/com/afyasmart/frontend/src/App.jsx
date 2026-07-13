@@ -8,6 +8,7 @@ import Assessment from "./pages/Assessment";
 import AssessmentHistory from "./pages/AssessmentHistory";
 import AppointmentPage from "./pages/AppointmentPage";
 import DoctorDirectory from "./pages/DoctorDirectory";
+import MyAppointments from "./pages/MyAppointments";
 
 function App() {
     return (
@@ -27,6 +28,12 @@ function App() {
             />
 
             <Route path="/doctors" element={<DoctorDirectory />} />
+
+            <Route
+                path="/my-appointments"
+                element={<MyAppointments />}
+            />
+
 
 
         </Routes>

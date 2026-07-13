@@ -35,6 +35,11 @@ export default function Sidebar() {
             path: "/appointments"
         },
         {
+            title: "My Appointments",
+            icon: CalendarDays,
+            path: "/my-appointments"
+        },
+        {
             title: "Doctors",
             icon: Users,
             path: "/doctors"

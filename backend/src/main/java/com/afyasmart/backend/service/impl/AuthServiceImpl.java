@@ -11,6 +11,8 @@ import com.afyasmart.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.afyasmart.backend.entity.Role;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(Role.PATIENT)
                 .enabled(true)
                 .build();
 

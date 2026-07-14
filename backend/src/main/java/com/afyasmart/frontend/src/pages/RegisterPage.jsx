@@ -10,8 +10,7 @@ export default function RegisterPage() {
         firstName: "",
         lastName: "",
         email: "",
-        password: "",
-        role: "PATIENT"
+        password: ""
     });
 
     const [loading, setLoading] = useState(false);

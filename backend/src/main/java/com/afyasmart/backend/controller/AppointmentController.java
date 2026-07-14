@@ -47,6 +47,49 @@ public class AppointmentController {
         );
     }
 
+    @GetMapping("/doctor/{doctorName}")
+    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getDoctorAppointments(
+            @PathVariable String doctorName) {
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<AppointmentResponse>>builder()
+                        .success(true)
+                        .message("Doctor appointments retrieved successfully")
+                        .data(appointmentService.getDoctorAppointments(doctorName))
+                        .build()
+        );
+    }
+
+    @PutMapping("/confirm/{appointmentId}")
+    public ResponseEntity<ApiResponse<String>> confirmAppointment(
+            @PathVariable Long appointmentId) {
+
+        appointmentService.confirmAppointment(appointmentId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("Appointment confirmed successfully")
+                        .data("Confirmed")
+                        .build()
+        );
+    }
+
+    @PutMapping("/complete/{appointmentId}")
+    public ResponseEntity<ApiResponse<String>> completeAppointment(
+            @PathVariable Long appointmentId) {
+
+        appointmentService.completeAppointment(appointmentId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("Appointment completed successfully")
+                        .data("Completed")
+                        .build()
+        );
+    }
+
     @PutMapping("/cancel/{appointmentId}")
     public ResponseEntity<ApiResponse<String>> cancelAppointment(
             @PathVariable Long appointmentId) {

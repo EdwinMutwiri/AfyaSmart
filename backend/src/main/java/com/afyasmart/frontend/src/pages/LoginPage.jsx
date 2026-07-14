@@ -30,14 +30,28 @@ export default function LoginPage() {
 
             const response = await login(form);
 
+            const user = response.data;
+
             localStorage.setItem(
                 "user",
-                JSON.stringify(response.data)
+                JSON.stringify(user)
             );
 
             alert("Login Successful!");
 
-            navigate("/dashboard");
+            if (user.role === "ADMIN") {
+
+                navigate("/admin-dashboard");
+
+            } else if (user.role === "DOCTOR") {
+
+                navigate("/doctor-dashboard");
+
+            } else {
+
+                navigate("/dashboard");
+
+            }
 
         } catch (error) {
 
@@ -51,6 +65,7 @@ export default function LoginPage() {
             setLoading(false);
 
         }
+
     };
 
     return (

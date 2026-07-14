@@ -52,12 +52,45 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    public List<AppointmentResponse> getDoctorAppointments(String doctorName) {
+
+        return appointmentRepository.findByDoctorName(doctorName)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
     public void cancelAppointment(Long appointmentId) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
         appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        appointmentRepository.save(appointment);
+    }
+
+    @Override
+    public void confirmAppointment(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Appointment not found"));
+
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+
+        appointmentRepository.save(appointment);
+    }
+
+    @Override
+    public void completeAppointment(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Appointment not found"));
+
+        appointment.setStatus(AppointmentStatus.COMPLETED);
 
         appointmentRepository.save(appointment);
     }

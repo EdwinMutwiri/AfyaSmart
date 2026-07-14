@@ -1,6 +1,5 @@
 package com.afyasmart.backend.dto;
 
-import com.afyasmart.backend.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -21,5 +20,4 @@ public class RegisterRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    private Role role = Role.PATIENT;
 }

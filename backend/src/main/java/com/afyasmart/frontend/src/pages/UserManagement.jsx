@@ -1,64 +1,127 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { getAllUsers } from "../services/userService";
-
-import { useNavigate } from "react-router-dom";
-
+import {
+    getUsers,
+    toggleUserStatus
+} from "../services/userService";
 
 export default function UserManagement() {
 
     const [users, setUsers] = useState([]);
-    const navigate = useNavigate();
+    const [search, setSearch] = useState("");
+    const [roleFilter, setRoleFilter] = useState("ALL");
 
     useEffect(() => {
         loadUsers();
     }, []);
 
     const loadUsers = async () => {
+
         try {
-            const response = await getAllUsers();
+
+            const response = await getUsers();
+
             setUsers(response.data);
+
         } catch (error) {
+
             console.error(error);
+
         }
+
     };
+
+    const toggleStatus = async (id) => {
+
+        try {
+
+            await toggleUserStatus(id);
+
+            loadUsers();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Unable to update user.");
+
+        }
+
+    };
+
+    const filteredUsers = useMemo(() => {
+
+        return users.filter(user => {
+
+            const fullName =
+                `${user.firstName} ${user.lastName}`.toLowerCase();
+
+            const matchesSearch =
+                fullName.includes(search.toLowerCase()) ||
+                user.email.toLowerCase().includes(search.toLowerCase());
+
+            const matchesRole =
+                roleFilter === "ALL" ||
+                user.role === roleFilter;
+
+            return matchesSearch && matchesRole;
+
+        });
+
+    }, [users, search, roleFilter]);
 
     return (
 
         <AppLayout>
 
-            <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold mb-8">
 
-                <h1 className="text-3xl font-bold">
-                    User Management
-                </h1>
+                User Management
 
-                <button
-                    onClick={() => navigate("/create-doctor")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
-                >
-                    + Create Doctor
-                </button>
+            </h1>
 
-            </div>
+            <div className="bg-white rounded-2xl shadow-lg p-6">
 
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="flex gap-4 mb-6">
+
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        className="border rounded-xl p-3 flex-1"
+                        value={search}
+                        onChange={(e) =>
+                            setSearch(e.target.value)
+                        }
+                    />
+
+                    <select
+                        className="border rounded-xl p-3"
+                        value={roleFilter}
+                        onChange={(e) =>
+                            setRoleFilter(e.target.value)
+                        }
+                    >
+
+                        <option value="ALL">All Roles</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="PATIENT">Patient</option>
+
+                    </select>
+
+                </div>
 
                 <table className="w-full">
 
-                    <thead className="bg-slate-100">
+                    <thead className="bg-blue-600 text-white">
 
                         <tr>
 
                             <th className="p-4 text-left">Name</th>
-
                             <th className="p-4 text-left">Email</th>
-
                             <th className="p-4 text-left">Role</th>
-
                             <th className="p-4 text-left">Status</th>
-
-                            <th className="p-4 text-left">Actions</th>
+                            <th className="p-4 text-center">Actions</th>
 
                         </tr>
 
@@ -66,51 +129,66 @@ export default function UserManagement() {
 
                     <tbody>
 
-                        {users.map((user) => (
+                        {filteredUsers.map(user => (
 
                             <tr
                                 key={user.id}
-                                className="border-t"
+                                className="border-b hover:bg-gray-50"
                             >
 
                                 <td className="p-4">
+
                                     {user.firstName} {user.lastName}
+
                                 </td>
 
                                 <td className="p-4">
+
                                     {user.email}
+
                                 </td>
 
                                 <td className="p-4">
 
-                                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                                    {user.role}
 
-                                        {user.role}
+                                </td>
+
+                                <td className="p-4">
+
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-sm ${
+                                            user.enabled
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-red-100 text-red-700"
+                                        }`}
+                                    >
+
+                                        {user.enabled
+                                            ? "Active"
+                                            : "Disabled"}
 
                                     </span>
 
                                 </td>
 
-                                <td className="p-4">
-
-                                    {user.enabled ? (
-                                        <span className="text-green-600">
-                                            Active
-                                        </span>
-                                    ) : (
-                                        <span className="text-red-600">
-                                            Disabled
-                                        </span>
-                                    )}
-
-                                </td>
-
-                                <td className="p-4">
+                                <td className="p-4 text-center">
 
                                     <button
-                                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                                        onClick={() =>
+                                            toggleStatus(user.id)
+                                        }
+                                        className={`px-4 py-2 rounded-lg text-white ${
+                                            user.enabled
+                                                ? "bg-red-600 hover:bg-red-700"
+                                                : "bg-green-600 hover:bg-green-700"
+                                        }`}
                                     >
-                                        Edit
+
+                                        {user.enabled
+                                            ? "Disable"
+                                            : "Enable"}
+
                                     </button>
 
                                 </td>

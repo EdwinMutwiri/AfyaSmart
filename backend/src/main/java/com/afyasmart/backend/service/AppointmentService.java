@@ -13,11 +13,12 @@ public interface AppointmentService {
 
     List<AppointmentResponse> getDoctorAppointments(String doctorName);
 
+    List<AppointmentResponse> getAllAppointments();
+
     void cancelAppointment(Long appointmentId);
 
-    void confirmAppointment(Long appointmentId);
+    AppointmentResponse confirmAppointment(Long appointmentId);
 
-    void completeAppointment(Long appointmentId);
-
+    AppointmentResponse completeAppointment(Long appointmentId);
 
 }

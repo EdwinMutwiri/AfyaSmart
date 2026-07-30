@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
+
 import {
     getDoctorAppointments,
     confirmAppointment,
-    completeAppointment
+    completeAppointment,
+    cancelAppointment
 } from "../services/appointmentService";
 
 export default function DoctorDashboard() {
@@ -19,13 +21,26 @@ export default function DoctorDashboard() {
     }, []);
 
     const loadAppointments = async () => {
+        try {
+
+            const response = await getDoctorAppointments(doctorName);
+
+            setAppointments(response.data);
+
+        } catch (err) {
+
+            console.error(err);
+
+        }
+    };
+
+    const confirm = async (id) => {
 
         try {
 
-            const response =
-                await getDoctorAppointments(doctorName);
+            await confirmAppointment(id);
 
-            setAppointments(response.data);
+            loadAppointments();
 
         } catch (err) {
 
@@ -35,19 +50,35 @@ export default function DoctorDashboard() {
 
     };
 
-    const confirm = async (id) => {
+    const complete = async (id) => {
 
-        await confirmAppointment(id);
+        try {
 
-        loadAppointments();
+            await completeAppointment(id);
+
+            loadAppointments();
+
+        } catch (err) {
+
+            console.error(err);
+
+        }
 
     };
 
-    const complete = async (id) => {
+    const cancel = async (id) => {
 
-        await completeAppointment(id);
+        try {
 
-        loadAppointments();
+            await cancelAppointment(id);
+
+            loadAppointments();
+
+        } catch (err) {
+
+            console.error(err);
+
+        }
 
     };
 
@@ -68,7 +99,7 @@ export default function DoctorDashboard() {
                 return "bg-red-100 text-red-700";
 
             default:
-                return "bg-gray-100";
+                return "bg-gray-100 text-gray-700";
 
         }
 
@@ -78,11 +109,25 @@ export default function DoctorDashboard() {
 
         <AppLayout>
 
-            <h1 className="text-3xl font-bold mb-8">
+            <div className="flex justify-between items-center mb-8">
 
-                Doctor Dashboard
+                <div>
 
-            </h1>
+                    <h1 className="text-3xl font-bold">
+
+                        Doctor Dashboard
+
+                    </h1>
+
+                    <p className="text-gray-500 mt-1">
+
+                        Welcome Dr. {user.firstName}
+
+                    </p>
+
+                </div>
+
+            </div>
 
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
 
@@ -92,13 +137,17 @@ export default function DoctorDashboard() {
 
                         <tr>
 
-                            <th className="p-4">Date</th>
+                            <th className="p-4 text-left">Doctor</th>
 
-                            <th className="p-4">Time</th>
+                            <th className="p-4 text-left">Date</th>
 
-                            <th className="p-4">Status</th>
+                            <th className="p-4 text-left">Time</th>
 
-                            <th className="p-4">Action</th>
+                            <th className="p-4 text-left">Reason</th>
+
+                            <th className="p-4 text-left">Status</th>
+
+                            <th className="p-4 text-center">Actions</th>
 
                         </tr>
 
@@ -111,8 +160,8 @@ export default function DoctorDashboard() {
                             <tr>
 
                                 <td
-                                    colSpan="4"
-                                    className="text-center py-10"
+                                    colSpan="6"
+                                    className="text-center py-10 text-gray-500"
                                 >
 
                                     No appointments available.
@@ -127,8 +176,14 @@ export default function DoctorDashboard() {
 
                                 <tr
                                     key={appointment.id}
-                                    className="border-b"
+                                    className="border-b hover:bg-gray-50"
                                 >
+
+                                    <td className="p-4">
+
+                                        {appointment.doctorName}
+
+                                    </td>
 
                                     <td className="p-4">
 
@@ -144,37 +199,78 @@ export default function DoctorDashboard() {
 
                                     <td className="p-4">
 
+                                        {appointment.reason}
+
+                                    </td>
+
+                                    <td className="p-4">
+
                                         <span
-                                            className={`px-3 py-1 rounded-full ${badge(appointment.status)}`}
+                                            className={`px-3 py-1 rounded-full font-semibold ${badge(appointment.status)}`}
                                         >
+
                                             {appointment.status}
+
                                         </span>
 
                                     </td>
 
                                     <td className="p-4">
 
-                                        {appointment.status === "PENDING" && (
+                                        <div className="flex flex-wrap gap-2 justify-center">
 
-                                            <button
-                                                onClick={() => confirm(appointment.id)}
-                                                className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                                            >
-                                                Confirm
-                                            </button>
+                                            {appointment.status === "PENDING" && (
 
-                                        )}
+                                                <>
+                                                    <button
+                                                        onClick={() => confirm(appointment.id)}
+                                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg"
+                                                    >
+                                                        Confirm
+                                                    </button>
 
-                                        {appointment.status === "CONFIRMED" && (
+                                                    <button
+                                                        onClick={() => cancel(appointment.id)}
+                                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </>
 
-                                            <button
-                                                onClick={() => complete(appointment.id)}
-                                                className="ml-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
-                                            >
-                                                Complete
-                                            </button>
+                                            )}
 
-                                        )}
+                                            {appointment.status === "CONFIRMED" && (
+
+                                                <>
+                                                    <button
+                                                        onClick={() => complete(appointment.id)}
+                                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg"
+                                                    >
+                                                        Complete
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => cancel(appointment.id)}
+                                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </>
+
+                                            )}
+
+                                            {(appointment.status === "COMPLETED" ||
+                                                appointment.status === "CANCELLED") && (
+
+                                                <span className="text-gray-500 font-medium">
+
+                                                    No actions available
+
+                                                </span>
+
+                                            )}
+
+                                        </div>
 
                                     </td>
 

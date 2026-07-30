@@ -55,6 +55,12 @@ public class AuthServiceImpl implements AuthService {
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
+        if (!account.getEnabled()) {
+            throw new RuntimeException(
+                    "Your account has been disabled. Please contact the administrator."
+            );
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
@@ -68,5 +74,6 @@ public class AuthServiceImpl implements AuthService {
                 .enabled(account.getEnabled())
                 .message("Login successful")
                 .build();
+
     }
 }

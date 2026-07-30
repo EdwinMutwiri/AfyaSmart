@@ -34,6 +34,23 @@ public class AppointmentController {
         );
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getAllAppointments() {
+
+        return ResponseEntity.ok(
+
+                ApiResponse.<List<AppointmentResponse>>builder()
+                        .success(true)
+                        .message("Appointments retrieved successfully")
+                        .data(
+                                appointmentService.getAllAppointments()
+                        )
+                        .build()
+
+        );
+
+    }
+
     @GetMapping("/{accountId}")
     public ResponseEntity<ApiResponse<List<AppointmentResponse>>> getAppointments(
             @PathVariable Long accountId) {
@@ -61,31 +78,27 @@ public class AppointmentController {
     }
 
     @PutMapping("/confirm/{appointmentId}")
-    public ResponseEntity<ApiResponse<String>> confirmAppointment(
+    public ResponseEntity<ApiResponse<AppointmentResponse>> confirmAppointment(
             @PathVariable Long appointmentId) {
 
-        appointmentService.confirmAppointment(appointmentId);
-
         return ResponseEntity.ok(
-                ApiResponse.<String>builder()
+                ApiResponse.<AppointmentResponse>builder()
                         .success(true)
                         .message("Appointment confirmed successfully")
-                        .data("Confirmed")
+                        .data(appointmentService.confirmAppointment(appointmentId))
                         .build()
         );
     }
 
     @PutMapping("/complete/{appointmentId}")
-    public ResponseEntity<ApiResponse<String>> completeAppointment(
+    public ResponseEntity<ApiResponse<AppointmentResponse>> completeAppointment(
             @PathVariable Long appointmentId) {
 
-        appointmentService.completeAppointment(appointmentId);
-
         return ResponseEntity.ok(
-                ApiResponse.<String>builder()
+                ApiResponse.<AppointmentResponse>builder()
                         .success(true)
                         .message("Appointment completed successfully")
-                        .data("Completed")
+                        .data(appointmentService.completeAppointment(appointmentId))
                         .build()
         );
     }

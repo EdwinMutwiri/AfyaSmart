@@ -54,10 +54,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<AppointmentResponse> getDoctorAppointments(String doctorName) {
 
-        return appointmentRepository.findByDoctorName(doctorName)
+        return appointmentRepository
+                .findByDoctorNameOrderByAppointmentDateAscAppointmentTimeAsc(doctorName)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> getAllAppointments() {
+
+        return appointmentRepository
+                .findAllByOrderByAppointmentDateAscAppointmentTimeAsc()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
     }
 
     @Override
@@ -72,39 +84,61 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void confirmAppointment(Long appointmentId) {
+    public AppointmentResponse confirmAppointment(Long appointmentId) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Appointment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
         appointment.setStatus(AppointmentStatus.CONFIRMED);
 
-        appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+
+        return mapToResponse(saved);
     }
 
     @Override
-    public void completeAppointment(Long appointmentId) {
+    public AppointmentResponse completeAppointment(Long appointmentId) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Appointment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
 
-        appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+
+        return mapToResponse(saved);
     }
 
     private AppointmentResponse mapToResponse(Appointment appointment) {
 
         return AppointmentResponse.builder()
                 .id(appointment.getId())
-                .doctorName(appointment.getDoctorName())
-                .specialization(appointment.getSpecialization())
-                .appointmentDate(appointment.getAppointmentDate())
-                .appointmentTime(appointment.getAppointmentTime())
-                .reason(appointment.getReason())
-                .status(appointment.getStatus())
+                .patientName(
+                        appointment.getAccount().getFirstName() + " " +
+                                appointment.getAccount().getLastName()
+                )
+                .patientEmail(
+                        appointment.getAccount().getEmail()
+                )
+                .doctorName(
+                        appointment.getDoctorName()
+                )
+                .specialization(
+                        appointment.getSpecialization()
+                )
+                .appointmentDate(
+                        appointment.getAppointmentDate()
+                )
+                .appointmentTime(
+                        appointment.getAppointmentTime()
+                )
+                .reason(
+                        appointment.getReason()
+                )
+                .status(
+                        appointment.getStatus()
+                )
                 .build();
+
     }
 }

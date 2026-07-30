@@ -13,6 +13,12 @@ public class AppointmentResponse {
 
     private Long id;
 
+    // NEW
+    private String patientName;
+
+    // NEW
+    private String patientEmail;
+
     private String doctorName;
 
     private String specialization;

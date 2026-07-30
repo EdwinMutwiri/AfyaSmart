@@ -21,11 +21,37 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUsers() {
 
         return ResponseEntity.ok(
+
                 ApiResponse.<List<UserResponse>>builder()
+
                         .success(true)
+
                         .message("Users retrieved successfully")
-                        .data(userService.getAllUsers())
+
+                        .data(
+                                userService.getAllUsers()
+                        )
+
                         .build()
+
+        );
+
+    }
+
+    @PutMapping("/{userId}/toggle-status")
+    public ResponseEntity<ApiResponse<String>> toggleStatus(
+            @PathVariable Long userId) {
+
+        userService.toggleUserStatus(userId);
+
+        return ResponseEntity.ok(
+
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("User status updated successfully")
+                        .data("Success")
+                        .build()
+
         );
 
     }

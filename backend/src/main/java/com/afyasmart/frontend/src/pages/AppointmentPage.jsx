@@ -1,65 +1,54 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import AppLayout from "../components/layout/AppLayout";
+import { useEffect, useState } from "react";
 import { bookAppointment } from "../services/appointmentService";
+import { getAllDoctors } from "../services/doctorService";
 
 export default function AppointmentPage() {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const location = useLocation();
-    const navigate = useNavigate();
-
-    const selectedDoctor = location.state;
-
-    const doctors = [
-
-        {
-            name: "Dr. Mercy Wanjiku",
-            specialization: "General Medicine"
-        },
-        {
-            name: "Dr. David Otieno",
-            specialization: "Cardiology"
-        },
-        {
-            name: "Dr. Sarah Njeri",
-            specialization: "Pediatrics"
-        },
-        {
-            name: "Dr. Brian Mwangi",
-            specialization: "Dermatology"
-        },
-        {
-            name: "Dr. Faith Achieng",
-            specialization: "Gynecology"
-        }
-
-    ];
+    const [doctors, setDoctors] = useState([]);
 
     const [form, setForm] = useState({
-
-        doctorName: selectedDoctor?.doctorName || "",
-
-        specialization: selectedDoctor?.specialization || "",
-
+        doctorName: "",
+        specialization: "",
         appointmentDate: "",
-
         appointmentTime: "",
-
         reason: ""
-
     });
+
+    useEffect(() => {
+
+        loadDoctors();
+
+    }, []);
+
+    const loadDoctors = async () => {
+
+        try {
+
+            const response = await getAllDoctors();
+
+            setDoctors(response.data);
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
 
     const handleDoctorChange = (e) => {
 
-        const doctor = doctors.find(d => d.name === e.target.value);
+        const doctor = doctors.find(
+            d => d.doctorName === e.target.value
+        );
 
         setForm({
 
             ...form,
 
-            doctorName: doctor.name,
+            doctorName: doctor.doctorName,
 
             specialization: doctor.specialization
 
@@ -103,9 +92,21 @@ export default function AppointmentPage() {
 
             alert("Appointment booked successfully!");
 
-            navigate("/dashboard");
+            setForm({
 
-        } catch (err) {
+                doctorName: "",
+
+                specialization: "",
+
+                appointmentDate: "",
+
+                appointmentTime: "",
+
+                reason: ""
+
+            });
+
+        } catch (error) {
 
             alert("Failed to book appointment.");
 
@@ -115,7 +116,7 @@ export default function AppointmentPage() {
 
     return (
 
-        <AppLayout>
+        <div className="min-h-screen bg-slate-100 p-10">
 
             <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8">
 
@@ -125,58 +126,37 @@ export default function AppointmentPage() {
 
                 </h1>
 
-                {selectedDoctor && (
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-5"
+                >
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                    <select
+                        className="w-full border rounded-xl p-3"
+                        value={form.doctorName}
+                        onChange={handleDoctorChange}
+                    >
 
-                        <h2 className="font-bold text-blue-700">
+                        <option value="">
 
-                            Selected Doctor
+                            Select Doctor
 
-                        </h2>
+                        </option>
 
-                        <p className="mt-2 text-lg">
+                        {doctors.map((doctor) => (
 
-                            {form.doctorName}
+                            <option
+                                key={doctor.id}
+                                value={doctor.doctorName}
+                            >
 
-                        </p>
-
-                    </div>
-
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-
-                    {!selectedDoctor && (
-
-                        <select
-                            className="w-full border rounded-xl p-3"
-                            onChange={handleDoctorChange}
-                            value={form.doctorName}
-                        >
-
-                            <option value="">
-
-                                Select Doctor
+                                {doctor.doctorName}
 
                             </option>
 
-                            {doctors.map((doctor) => (
+                        ))}
 
-                                <option
-                                    key={doctor.name}
-                                    value={doctor.name}
-                                >
-
-                                    {doctor.name}
-
-                                </option>
-
-                            ))}
-
-                        </select>
-
-                    )}
+                    </select>
 
                     <input
                         className="w-full border rounded-xl p-3 bg-gray-100"
@@ -188,35 +168,32 @@ export default function AppointmentPage() {
                         type="date"
                         name="appointmentDate"
                         className="w-full border rounded-xl p-3"
-                        onChange={handleChange}
                         value={form.appointmentDate}
-                        required
+                        onChange={handleChange}
                     />
 
                     <input
                         type="time"
                         name="appointmentTime"
                         className="w-full border rounded-xl p-3"
-                        onChange={handleChange}
                         value={form.appointmentTime}
-                        required
+                        onChange={handleChange}
                     />
 
                     <textarea
                         name="reason"
                         rows="4"
-                        placeholder="Reason for appointment"
                         className="w-full border rounded-xl p-3"
-                        onChange={handleChange}
+                        placeholder="Reason for appointment"
                         value={form.reason}
-                        required
+                        onChange={handleChange}
                     />
 
                     <button
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl"
                     >
 
-                        Confirm Appointment
+                        Book Appointment
 
                     </button>
 
@@ -224,7 +201,7 @@ export default function AppointmentPage() {
 
             </div>
 
-        </AppLayout>
+        </div>
 
     );
 

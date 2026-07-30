@@ -1,6 +1,8 @@
 package com.afyasmart.backend.service.impl;
 
 import com.afyasmart.backend.dto.UserResponse;
+import com.afyasmart.backend.entity.Account;
+import com.afyasmart.backend.exception.ResourceNotFoundException;
 import com.afyasmart.backend.repository.AccountRepository;
 import com.afyasmart.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -30,4 +32,15 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    public void toggleUserStatus(Long userId) {
+
+        Account account = accountRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        account.setEnabled(!account.getEnabled());
+
+        accountRepository.save(account);
+    }
 }

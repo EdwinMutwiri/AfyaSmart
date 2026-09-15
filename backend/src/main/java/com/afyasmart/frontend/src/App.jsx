@@ -18,7 +18,7 @@ import UserManagement from "./pages/UserManagement";
 import CreateDoctor from "./pages/CreateDoctor";
 
 import AdminAppointments from "./pages/AdminAppointments";
-
+import AdminReports from "./pages/AdminReports";
 function App() {
 
     return (
@@ -138,6 +138,15 @@ function App() {
                 element={
                     <ProtectedRoute allowedRoles={["ADMIN"]}>
                         <AdminAppointments />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin-reports"
+                element={
+                    <ProtectedRoute allowedRoles={["ADMIN"]}>
+                        <AdminReports />
                     </ProtectedRoute>
                 }
             />

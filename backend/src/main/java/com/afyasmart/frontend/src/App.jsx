@@ -19,6 +19,8 @@ import CreateDoctor from "./pages/CreateDoctor";
 
 import AdminAppointments from "./pages/AdminAppointments";
 import AdminReports from "./pages/AdminReports";
+
+import MedicineReminders from "./pages/MedicineReminders";
 function App() {
 
     return (
@@ -87,6 +89,16 @@ function App() {
                 element={
                     <ProtectedRoute allowedRoles={["PATIENT", "ADMIN"]}>
                         <DoctorDirectory />
+                    </ProtectedRoute>
+                }
+            />
+
+
+            <Route
+                path="/medicines"
+                element={
+                    <ProtectedRoute allowedRoles={["PATIENT"]}>
+                        <MedicineReminders />
                     </ProtectedRoute>
                 }
             />

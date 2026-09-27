@@ -14,6 +14,8 @@ import {
 
 import { NavLink, useNavigate } from "react-router-dom";
 
+import { Pill } from "lucide-react";
+
 export default function Sidebar() {
 
     const navigate = useNavigate();
@@ -168,7 +170,13 @@ export default function Sidebar() {
                 title: "Settings",
                 icon: Settings,
                 path: "/settings"
-            }
+            },
+
+        {
+            title: "Medicine Reminders",
+            icon: Pill,
+            path: "/medicines"
+        }
 
         ];
 

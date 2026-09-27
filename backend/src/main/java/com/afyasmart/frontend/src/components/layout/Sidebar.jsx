@@ -6,6 +6,8 @@ import {
     UserRound,
     Users,
     UserCog,
+    UserPlus,
+    FileBarChart,
     Settings,
     LogOut
 } from "lucide-react";
@@ -49,9 +51,21 @@ export default function Sidebar() {
             },
 
             {
+                title: "Add New Doctor",
+                icon: UserPlus,
+                path: "/create-doctor"
+            },
+
+            {
                 title: "Appointments",
                 icon: CalendarDays,
                 path: "/admin-appointments"
+            },
+
+            {
+                title: "Reports",
+                icon: FileBarChart,
+                path: "/admin-reports"
             },
 
             {
@@ -164,21 +178,26 @@ export default function Sidebar() {
 
         <aside className="w-72 min-h-screen bg-slate-900 text-white shadow-xl relative">
 
+            {/* =========================
+                SIDEBAR HEADER
+            ========================= */}
+
             <div className="p-6 border-b border-slate-700">
 
                 <h1 className="text-3xl font-bold">
-
                     🏥 AfyaSmart
-
                 </h1>
 
                 <p className="text-sm text-slate-400 mt-2">
-
                     Smart Healthcare Platform
-
                 </p>
 
             </div>
+
+
+            {/* =========================
+                NAVIGATION
+            ========================= */}
 
             <nav className="mt-6 px-4 mb-24">
 
@@ -203,9 +222,7 @@ export default function Sidebar() {
                             <Icon size={22} />
 
                             <span>
-
                                 {item.title}
-
                             </span>
 
                         </NavLink>
@@ -215,6 +232,11 @@ export default function Sidebar() {
                 })}
 
             </nav>
+
+
+            {/* =========================
+                LOGOUT
+            ========================= */}
 
             <div className="absolute bottom-6 left-4 right-4">
 

@@ -20,6 +20,12 @@ import org.springframework.web.bind.annotation.*;
  * 1. Appointment PDF Report
  * 2. Appointment Excel Report
  *
+ * 3. Patient PDF Report
+ * 4. Patient Excel Report
+ *
+ * 5. Doctor PDF Report
+ * 6. Doctor Excel Report
+ *
  * Base URL:
  * /api/reports
  *
@@ -34,6 +40,10 @@ public class ReportController {
     private final ReportService reportService;
 
 
+    // ============================================================
+    // APPOINTMENT REPORTS
+    // ============================================================
+
     /**
      * ========================================================
      * Generate Appointment PDF Report
@@ -41,9 +51,6 @@ public class ReportController {
      *
      * Endpoint:
      * GET /api/reports/appointments/pdf
-     *
-     * This endpoint retrieves appointment information from the
-     * database and generates a downloadable PDF report.
      *
      * @return PDF file as byte array
      */
@@ -72,12 +79,6 @@ public class ReportController {
      * Endpoint:
      * GET /api/reports/appointments/excel
      *
-     * This endpoint generates an Excel spreadsheet containing
-     * appointment information.
-     *
-     * The Excel file can be opened using Microsoft Excel,
-     * LibreOffice Calc, or other spreadsheet applications.
-     *
      * @return Excel file as byte array
      */
     @GetMapping("/appointments/excel")
@@ -96,6 +97,142 @@ public class ReportController {
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=AfyaSmart_Appointments_Report.xlsx"
+                )
+                .body(excel);
+    }
+
+
+    // ============================================================
+    // PATIENT REPORTS
+    // ============================================================
+
+    /**
+     * ========================================================
+     * Generate Patient PDF Report
+     * ========================================================
+     *
+     * Endpoint:
+     * GET /api/reports/patients/pdf
+     *
+     * This report contains registered patient information
+     * available in the AfyaSmart system.
+     *
+     * @return Patient PDF report
+     */
+    @GetMapping("/patients/pdf")
+    public ResponseEntity<byte[]> generatePatientPdf()
+            throws Exception {
+
+        byte[] pdf =
+                reportService.generatePatientPdf();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=AfyaSmart_Patients_Report.pdf"
+                )
+                .body(pdf);
+    }
+
+
+    /**
+     * ========================================================
+     * Generate Patient Excel Report
+     * ========================================================
+     *
+     * Endpoint:
+     * GET /api/reports/patients/excel
+     *
+     * This report contains registered patient information
+     * in spreadsheet format.
+     *
+     * @return Patient Excel report
+     */
+    @GetMapping("/patients/excel")
+    public ResponseEntity<byte[]> generatePatientExcel()
+            throws Exception {
+
+        byte[] excel =
+                reportService.generatePatientExcel();
+
+        return ResponseEntity.ok()
+                .contentType(
+                        MediaType.parseMediaType(
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                )
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=AfyaSmart_Patients_Report.xlsx"
+                )
+                .body(excel);
+    }
+
+
+    // ============================================================
+    // DOCTOR REPORTS
+    // ============================================================
+
+    /**
+     * ========================================================
+     * Generate Doctor PDF Report
+     * ========================================================
+     *
+     * Endpoint:
+     * GET /api/reports/doctors/pdf
+     *
+     * This report contains doctor profile information
+     * registered in the AfyaSmart system.
+     *
+     * @return Doctor PDF report
+     */
+    @GetMapping("/doctors/pdf")
+    public ResponseEntity<byte[]> generateDoctorPdf()
+            throws Exception {
+
+        byte[] pdf =
+                reportService.generateDoctorPdf();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=AfyaSmart_Doctors_Report.pdf"
+                )
+                .body(pdf);
+    }
+
+
+    /**
+     * ========================================================
+     * Generate Doctor Excel Report
+     * ========================================================
+     *
+     * Endpoint:
+     * GET /api/reports/doctors/excel
+     *
+     * This report contains doctor profile information
+     * in spreadsheet format.
+     *
+     * @return Doctor Excel report
+     */
+    @GetMapping("/doctors/excel")
+    public ResponseEntity<byte[]> generateDoctorExcel()
+            throws Exception {
+
+        byte[] excel =
+                reportService.generateDoctorExcel();
+
+        return ResponseEntity.ok()
+                .contentType(
+                        MediaType.parseMediaType(
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                )
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=AfyaSmart_Doctors_Report.xlsx"
                 )
                 .body(excel);
     }

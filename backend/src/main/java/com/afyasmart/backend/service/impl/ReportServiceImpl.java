@@ -1,7 +1,14 @@
 package com.afyasmart.backend.service.impl;
 
+import com.afyasmart.backend.entity.Account;
 import com.afyasmart.backend.entity.Appointment;
+import com.afyasmart.backend.entity.DoctorProfile;
+import com.afyasmart.backend.entity.Role;
+
+import com.afyasmart.backend.repository.AccountRepository;
 import com.afyasmart.backend.repository.AppointmentRepository;
+import com.afyasmart.backend.repository.DoctorProfileRepository;
+
 import com.afyasmart.backend.service.ReportService;
 
 import com.lowagie.text.Document;
@@ -28,8 +35,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 
 
@@ -38,29 +47,23 @@ import java.util.List;
  * AfyaSmart - Report Service Implementation
  * ============================================================
  *
- * This class contains the actual implementation for generating
- * AfyaSmart system reports.
+ * Handles generation of administrative reports for:
  *
- * Current reports:
+ * 1. Appointments
+ *      - PDF
+ *      - Excel
  *
- * 1. Appointment PDF Report
- * 2. Appointment Excel Report
+ * 2. Patients
+ *      - PDF
+ *      - Excel
  *
- * The service retrieves appointment information from the
- * database using AppointmentRepository and converts the
- * information into downloadable report files.
+ * 3. Doctors
+ *      - PDF
+ *      - Excel
  *
- * Architecture:
+ * The generated files are returned as byte arrays so that
+ * ReportController can send them directly to the browser.
  *
- * AppointmentRepository
- *          ↓
- * ReportServiceImpl
- *          ↓
- * PDF / Excel
- *          ↓
- * ReportController
- *          ↓
- * Frontend / Browser
  * ============================================================
  */
 @Service
@@ -68,71 +71,54 @@ import java.util.List;
 public class ReportServiceImpl implements ReportService {
 
 
-    /*
-     * Repository used to retrieve appointment information
-     * from the AfyaSmart database.
+    // =========================================================
+    // REPOSITORIES
+    // =========================================================
+
+    /**
+     * Retrieves appointment information.
      */
     private final AppointmentRepository appointmentRepository;
+
+
+    /**
+     * Retrieves patient and account information.
+     */
+    private final AccountRepository accountRepository;
+
+
+    /**
+     * Retrieves doctor profile information.
+     */
+    private final DoctorProfileRepository doctorProfileRepository;
 
 
     // =========================================================
     // APPOINTMENT PDF REPORT
     // =========================================================
 
-    /**
-     * Generates an appointment report in PDF format.
-     *
-     * @return generated PDF as byte array
-     * @throws IOException if PDF generation fails
-     */
     @Override
     public byte[] generateAppointmentPdf() throws IOException {
 
-        /*
-         * Retrieve all appointments from the database.
-         *
-         * The repository method also sorts the appointments
-         * according to appointment date and time.
-         */
         List<Appointment> appointments =
                 appointmentRepository
                         .findAllByOrderByAppointmentDateAscAppointmentTimeAsc();
 
-
-        /*
-         * Create an in-memory output stream.
-         *
-         * This means we don't need to create a physical
-         * temporary PDF file on the server.
-         */
         ByteArrayOutputStream outputStream =
                 new ByteArrayOutputStream();
 
-
-        /*
-         * Create an A4 PDF document.
-         */
         Document document =
                 new Document(PageSize.A4);
 
-
-        /*
-         * Connect the PDF writer to our output stream.
-         */
         PdfWriter.getInstance(
                 document,
                 outputStream
         );
 
-
-        /*
-         * Open the document before adding content.
-         */
         document.open();
 
-
         // -----------------------------------------------------
-        // PDF TITLE
+        // TITLE
         // -----------------------------------------------------
 
         Font titleFont =
@@ -142,25 +128,18 @@ public class ReportServiceImpl implements ReportService {
                         Font.BOLD
                 );
 
-
         Paragraph title =
                 new Paragraph(
                         "AFYASMART",
                         titleFont
                 );
 
-
         title.setAlignment(
                 Paragraph.ALIGN_CENTER
         );
 
-
         document.add(title);
 
-
-        // -----------------------------------------------------
-        // PDF SUBTITLE
-        // -----------------------------------------------------
 
         Font subtitleFont =
                 new Font(
@@ -169,25 +148,18 @@ public class ReportServiceImpl implements ReportService {
                         Font.BOLD
                 );
 
-
         Paragraph subtitle =
                 new Paragraph(
                         "Appointment Report",
                         subtitleFont
                 );
 
-
         subtitle.setAlignment(
                 Paragraph.ALIGN_CENTER
         );
 
-
         document.add(subtitle);
 
-
-        /*
-         * Add spacing after the title.
-         */
         document.add(
                 new Paragraph(" ")
         );
@@ -204,20 +176,14 @@ public class ReportServiceImpl implements ReportService {
                         Font.NORMAL
                 );
 
-
-        /*
-         * Format the report generation date and time.
-         */
         DateTimeFormatter formatter =
                 DateTimeFormatter.ofPattern(
                         "dd MMMM yyyy, HH:mm"
                 );
 
-
         String generatedAt =
                 LocalDateTime.now()
                         .format(formatter);
-
 
         document.add(
                 new Paragraph(
@@ -225,7 +191,6 @@ public class ReportServiceImpl implements ReportService {
                         informationFont
                 )
         );
-
 
         document.add(
                 new Paragraph(
@@ -235,29 +200,20 @@ public class ReportServiceImpl implements ReportService {
                 )
         );
 
-
         document.add(
                 new Paragraph(" ")
         );
 
 
         // -----------------------------------------------------
-        // PDF APPOINTMENT TABLE
+        // APPOINTMENT TABLE
         // -----------------------------------------------------
 
-        /*
-         * Create seven columns.
-         */
         PdfPTable table =
                 new PdfPTable(7);
 
-
         table.setWidthPercentage(100);
 
-
-        /*
-         * Configure relative column widths.
-         */
         table.setWidths(
                 new float[]{
                         1.3f,
@@ -271,10 +227,6 @@ public class ReportServiceImpl implements ReportService {
         );
 
 
-        // -----------------------------------------------------
-        // TABLE HEADERS
-        // -----------------------------------------------------
-
         Font headerFont =
                 new Font(
                         Font.HELVETICA,
@@ -282,59 +234,14 @@ public class ReportServiceImpl implements ReportService {
                         Font.BOLD
                 );
 
+        addHeaderCell(table, "Patient", headerFont);
+        addHeaderCell(table, "Email", headerFont);
+        addHeaderCell(table, "Doctor", headerFont);
+        addHeaderCell(table, "Date", headerFont);
+        addHeaderCell(table, "Time", headerFont);
+        addHeaderCell(table, "Status", headerFont);
+        addHeaderCell(table, "Reason", headerFont);
 
-        addHeaderCell(
-                table,
-                "Patient",
-                headerFont
-        );
-
-
-        addHeaderCell(
-                table,
-                "Email",
-                headerFont
-        );
-
-
-        addHeaderCell(
-                table,
-                "Doctor",
-                headerFont
-        );
-
-
-        addHeaderCell(
-                table,
-                "Date",
-                headerFont
-        );
-
-
-        addHeaderCell(
-                table,
-                "Time",
-                headerFont
-        );
-
-
-        addHeaderCell(
-                table,
-                "Status",
-                headerFont
-        );
-
-
-        addHeaderCell(
-                table,
-                "Reason",
-                headerFont
-        );
-
-
-        // -----------------------------------------------------
-        // TABLE DATA
-        // -----------------------------------------------------
 
         Font dataFont =
                 new Font(
@@ -344,9 +251,6 @@ public class ReportServiceImpl implements ReportService {
                 );
 
 
-        /*
-         * Loop through all appointments.
-         */
         for (Appointment appointment : appointments) {
 
             String patientName =
@@ -354,32 +258,26 @@ public class ReportServiceImpl implements ReportService {
                             + " "
                             + appointment.getAccount().getLastName();
 
-
             String patientEmail =
                     appointment.getAccount().getEmail();
 
-
             String doctorName =
                     appointment.getDoctorName();
-
 
             String date =
                     appointment.getAppointmentDate() != null
                             ? appointment.getAppointmentDate().toString()
                             : "";
 
-
             String time =
                     appointment.getAppointmentTime() != null
                             ? appointment.getAppointmentTime().toString()
                             : "";
 
-
             String status =
                     appointment.getStatus() != null
                             ? appointment.getStatus().name()
                             : "";
-
 
             String reason =
                     appointment.getReason() != null
@@ -393,13 +291,11 @@ public class ReportServiceImpl implements ReportService {
                     dataFont
             );
 
-
             addDataCell(
                     table,
                     patientEmail,
                     dataFont
             );
-
 
             addDataCell(
                     table,
@@ -407,13 +303,11 @@ public class ReportServiceImpl implements ReportService {
                     dataFont
             );
 
-
             addDataCell(
                     table,
                     date,
                     dataFont
             );
-
 
             addDataCell(
                     table,
@@ -421,13 +315,11 @@ public class ReportServiceImpl implements ReportService {
                     dataFont
             );
 
-
             addDataCell(
                     table,
                     status,
                     dataFont
             );
-
 
             addDataCell(
                     table,
@@ -437,20 +329,16 @@ public class ReportServiceImpl implements ReportService {
         }
 
 
-        /*
-         * Add the completed table to the document.
-         */
         document.add(table);
 
 
         // -----------------------------------------------------
-        // PDF FOOTER
+        // FOOTER
         // -----------------------------------------------------
 
         document.add(
                 new Paragraph(" ")
         );
-
 
         Font footerFont =
                 new Font(
@@ -459,31 +347,20 @@ public class ReportServiceImpl implements ReportService {
                         Font.ITALIC
                 );
 
-
         Paragraph footer =
                 new Paragraph(
                         "AfyaSmart Healthcare Management System",
                         footerFont
                 );
 
-
         footer.setAlignment(
                 Paragraph.ALIGN_CENTER
         );
 
-
         document.add(footer);
 
-
-        /*
-         * Close the PDF document.
-         */
         document.close();
 
-
-        /*
-         * Return the generated PDF.
-         */
         return outputStream.toByteArray();
     }
 
@@ -492,35 +369,17 @@ public class ReportServiceImpl implements ReportService {
     // APPOINTMENT EXCEL REPORT
     // =========================================================
 
-    /**
-     * Generates an appointment report in Excel format.
-     *
-     * @return generated Excel workbook as byte array
-     * @throws Exception if Excel generation fails
-     */
     @Override
     public byte[] generateAppointmentExcel()
             throws Exception {
 
-        /*
-         * Retrieve all appointments from the database.
-         */
         List<Appointment> appointments =
                 appointmentRepository
                         .findAllByOrderByAppointmentDateAscAppointmentTimeAsc();
 
-
-        /*
-         * Create an Excel workbook using the modern .xlsx
-         * format.
-         */
         Workbook workbook =
                 new XSSFWorkbook();
 
-
-        /*
-         * Create the worksheet.
-         */
         Sheet sheet =
                 workbook.createSheet(
                         "Appointments"
@@ -528,60 +387,39 @@ public class ReportServiceImpl implements ReportService {
 
 
         // -----------------------------------------------------
-        // EXCEL TITLE
+        // TITLE
         // -----------------------------------------------------
 
         Row titleRow =
                 sheet.createRow(0);
 
-
         Cell titleCell =
                 titleRow.createCell(0);
-
 
         titleCell.setCellValue(
                 "AfyaSmart Appointment Report"
         );
 
 
-        /*
-         * IMPORTANT:
-         *
-         * Apache POI has its own Font class.
-         *
-         * We intentionally use the fully qualified name here
-         * because OpenPDF also has a class called Font.
-         *
-         * This prevents the "Font is ambiguous" compilation
-         * error.
-         */
         org.apache.poi.ss.usermodel.Font titleFont =
                 workbook.createFont();
 
-
         titleFont.setBold(true);
-
 
         titleFont.setFontHeightInPoints(
                 (short) 16
         );
 
-
         CellStyle titleStyle =
                 workbook.createCellStyle();
 
-
         titleStyle.setFont(titleFont);
-
 
         titleCell.setCellStyle(
                 titleStyle
         );
 
 
-        /*
-         * Merge the title across all eight columns.
-         */
         sheet.addMergedRegion(
                 new CellRangeAddress(
                         0,
@@ -599,10 +437,8 @@ public class ReportServiceImpl implements ReportService {
         Row infoRow =
                 sheet.createRow(1);
 
-
         Cell infoCell =
                 infoRow.createCell(0);
-
 
         infoCell.setCellValue(
                 "Total Appointments: "
@@ -611,12 +447,11 @@ public class ReportServiceImpl implements ReportService {
 
 
         // -----------------------------------------------------
-        // EXCEL TABLE HEADERS
+        // HEADERS
         // -----------------------------------------------------
 
         Row headerRow =
                 sheet.createRow(3);
-
 
         String[] headers = {
 
@@ -632,41 +467,27 @@ public class ReportServiceImpl implements ReportService {
         };
 
 
-        /*
-         * Create Excel header font.
-         *
-         * We use the complete package name to avoid conflict
-         * with OpenPDF's Font class.
-         */
         org.apache.poi.ss.usermodel.Font headerFont =
                 workbook.createFont();
 
-
         headerFont.setBold(true);
-
 
         CellStyle headerStyle =
                 workbook.createCellStyle();
-
 
         headerStyle.setFont(
                 headerFont
         );
 
 
-        /*
-         * Create all header cells.
-         */
         for (int i = 0; i < headers.length; i++) {
 
             Cell cell =
                     headerRow.createCell(i);
 
-
             cell.setCellValue(
                     headers[i]
             );
-
 
             cell.setCellStyle(
                     headerStyle
@@ -675,15 +496,11 @@ public class ReportServiceImpl implements ReportService {
 
 
         // -----------------------------------------------------
-        // EXCEL APPOINTMENT DATA
+        // DATA
         // -----------------------------------------------------
 
         int rowNumber = 4;
 
-
-        /*
-         * Add every appointment to the Excel sheet.
-         */
         for (Appointment appointment : appointments) {
 
             Row row =
@@ -692,9 +509,6 @@ public class ReportServiceImpl implements ReportService {
                     );
 
 
-            /*
-             * Patient name.
-             */
             String patientName =
                     appointment.getAccount().getFirstName()
                             + " "
@@ -707,9 +521,6 @@ public class ReportServiceImpl implements ReportService {
                     );
 
 
-            /*
-             * Patient email.
-             */
             row.createCell(1)
                     .setCellValue(
                             appointment
@@ -718,27 +529,18 @@ public class ReportServiceImpl implements ReportService {
                     );
 
 
-            /*
-             * Doctor name.
-             */
             row.createCell(2)
                     .setCellValue(
                             appointment.getDoctorName()
                     );
 
 
-            /*
-             * Specialization.
-             */
             row.createCell(3)
                     .setCellValue(
                             appointment.getSpecialization()
                     );
 
 
-            /*
-             * Appointment date.
-             */
             row.createCell(4)
                     .setCellValue(
                             appointment.getAppointmentDate() != null
@@ -749,9 +551,6 @@ public class ReportServiceImpl implements ReportService {
                     );
 
 
-            /*
-             * Appointment time.
-             */
             row.createCell(5)
                     .setCellValue(
                             appointment.getAppointmentTime() != null
@@ -762,9 +561,6 @@ public class ReportServiceImpl implements ReportService {
                     );
 
 
-            /*
-             * Appointment reason.
-             */
             row.createCell(6)
                     .setCellValue(
                             appointment.getReason() != null
@@ -773,9 +569,6 @@ public class ReportServiceImpl implements ReportService {
                     );
 
 
-            /*
-             * Appointment status.
-             */
             row.createCell(7)
                     .setCellValue(
                             appointment.getStatus() != null
@@ -788,44 +581,1011 @@ public class ReportServiceImpl implements ReportService {
 
 
         // -----------------------------------------------------
-        // AUTOMATIC COLUMN WIDTH
+        // COLUMN WIDTH
         // -----------------------------------------------------
 
-        /*
-         * Automatically resize each column based on its
-         * contents.
-         */
         for (int i = 0; i < headers.length; i++) {
 
             sheet.autoSizeColumn(i);
+
         }
 
 
         // -----------------------------------------------------
-        // CREATE EXCEL FILE
+        // CREATE FILE
         // -----------------------------------------------------
 
         ByteArrayOutputStream outputStream =
                 new ByteArrayOutputStream();
 
-
-        /*
-         * Write the workbook into memory.
-         */
         workbook.write(
                 outputStream
         );
 
-
-        /*
-         * Close the workbook to release resources.
-         */
         workbook.close();
 
+        return outputStream.toByteArray();
+    }
 
-        /*
-         * Return the Excel file.
-         */
+
+    // =========================================================
+    // PATIENT PDF REPORT
+    // =========================================================
+
+    @Override
+    public byte[] generatePatientPdf()
+            throws IOException {
+
+        List<Account> patients =
+                accountRepository.findByRole(
+                        Role.PATIENT
+                );
+
+
+        ByteArrayOutputStream outputStream =
+                new ByteArrayOutputStream();
+
+        Document document =
+                new Document(PageSize.A4);
+
+        PdfWriter.getInstance(
+                document,
+                outputStream
+        );
+
+        document.open();
+
+
+        // -----------------------------------------------------
+        // TITLE
+        // -----------------------------------------------------
+
+        Font titleFont =
+                new Font(
+                        Font.HELVETICA,
+                        22,
+                        Font.BOLD
+                );
+
+        Paragraph title =
+                new Paragraph(
+                        "AFYASMART",
+                        titleFont
+                );
+
+        title.setAlignment(
+                Paragraph.ALIGN_CENTER
+        );
+
+        document.add(title);
+
+
+        Font subtitleFont =
+                new Font(
+                        Font.HELVETICA,
+                        14,
+                        Font.BOLD
+                );
+
+        Paragraph subtitle =
+                new Paragraph(
+                        "Registered Patients Report",
+                        subtitleFont
+                );
+
+        subtitle.setAlignment(
+                Paragraph.ALIGN_CENTER
+        );
+
+        document.add(subtitle);
+
+        document.add(
+                new Paragraph(" ")
+        );
+
+
+        // -----------------------------------------------------
+        // INFORMATION
+        // -----------------------------------------------------
+
+        Font informationFont =
+                new Font(
+                        Font.HELVETICA,
+                        9,
+                        Font.NORMAL
+                );
+
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern(
+                        "dd MMMM yyyy, HH:mm"
+                );
+
+        document.add(
+                new Paragraph(
+                        "Generated on: "
+                                + LocalDateTime.now()
+                                .format(formatter),
+                        informationFont
+                )
+        );
+
+        document.add(
+                new Paragraph(
+                        "Total Patients: "
+                                + patients.size(),
+                        informationFont
+                )
+        );
+
+        document.add(
+                new Paragraph(" ")
+        );
+
+
+        // -----------------------------------------------------
+        // TABLE
+        // -----------------------------------------------------
+
+        PdfPTable table =
+                new PdfPTable(4);
+
+        table.setWidthPercentage(100);
+
+        table.setWidths(
+                new float[]{
+                        1.4f,
+                        1.4f,
+                        2.0f,
+                        1.2f
+                }
+        );
+
+
+        Font headerFont =
+                new Font(
+                        Font.HELVETICA,
+                        9,
+                        Font.BOLD
+                );
+
+        addHeaderCell(
+                table,
+                "First Name",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Last Name",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Email",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Role",
+                headerFont
+        );
+
+
+        Font dataFont =
+                new Font(
+                        Font.HELVETICA,
+                        8,
+                        Font.NORMAL
+                );
+
+
+        for (Account patient : patients) {
+
+            addDataCell(
+                    table,
+                    patient.getFirstName(),
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    patient.getLastName(),
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    patient.getEmail(),
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    patient.getRole() != null
+                            ? patient.getRole().name()
+                            : "",
+                    dataFont
+            );
+        }
+
+
+        document.add(table);
+
+
+        // -----------------------------------------------------
+        // FOOTER
+        // -----------------------------------------------------
+
+        document.add(
+                new Paragraph(" ")
+        );
+
+        Font footerFont =
+                new Font(
+                        Font.HELVETICA,
+                        8,
+                        Font.ITALIC
+                );
+
+        Paragraph footer =
+                new Paragraph(
+                        "AfyaSmart Healthcare Management System",
+                        footerFont
+                );
+
+        footer.setAlignment(
+                Paragraph.ALIGN_CENTER
+        );
+
+        document.add(footer);
+
+        document.close();
+
+        return outputStream.toByteArray();
+    }
+
+
+    // =========================================================
+    // PATIENT EXCEL REPORT
+    // =========================================================
+
+    @Override
+    public byte[] generatePatientExcel()
+            throws Exception {
+
+        List<Account> patients =
+                accountRepository.findByRole(
+                        Role.PATIENT
+                );
+
+
+        Workbook workbook =
+                new XSSFWorkbook();
+
+        Sheet sheet =
+                workbook.createSheet(
+                        "Patients"
+                );
+
+
+        // -----------------------------------------------------
+        // TITLE
+        // -----------------------------------------------------
+
+        Row titleRow =
+                sheet.createRow(0);
+
+        Cell titleCell =
+                titleRow.createCell(0);
+
+        titleCell.setCellValue(
+                "AfyaSmart Registered Patients Report"
+        );
+
+
+        org.apache.poi.ss.usermodel.Font titleFont =
+                workbook.createFont();
+
+        titleFont.setBold(true);
+
+        titleFont.setFontHeightInPoints(
+                (short) 16
+        );
+
+        CellStyle titleStyle =
+                workbook.createCellStyle();
+
+        titleStyle.setFont(titleFont);
+
+        titleCell.setCellStyle(
+                titleStyle
+        );
+
+
+        sheet.addMergedRegion(
+                new CellRangeAddress(
+                        0,
+                        0,
+                        0,
+                        3
+                )
+        );
+
+
+        // -----------------------------------------------------
+        // INFORMATION
+        // -----------------------------------------------------
+
+        Row infoRow =
+                sheet.createRow(1);
+
+        infoRow.createCell(0)
+                .setCellValue(
+                        "Total Patients: "
+                                + patients.size()
+                );
+
+
+        // -----------------------------------------------------
+        // HEADERS
+        // -----------------------------------------------------
+
+        Row headerRow =
+                sheet.createRow(3);
+
+        String[] headers = {
+                "First Name",
+                "Last Name",
+                "Email",
+                "Role"
+        };
+
+
+        org.apache.poi.ss.usermodel.Font headerFont =
+                workbook.createFont();
+
+        headerFont.setBold(true);
+
+        CellStyle headerStyle =
+                workbook.createCellStyle();
+
+        headerStyle.setFont(
+                headerFont
+        );
+
+
+        for (int i = 0; i < headers.length; i++) {
+
+            Cell cell =
+                    headerRow.createCell(i);
+
+            cell.setCellValue(
+                    headers[i]
+            );
+
+            cell.setCellStyle(
+                    headerStyle
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // PATIENT DATA
+        // -----------------------------------------------------
+
+        int rowNumber = 4;
+
+        for (Account patient : patients) {
+
+            Row row =
+                    sheet.createRow(
+                            rowNumber++
+                    );
+
+
+            row.createCell(0)
+                    .setCellValue(
+                            patient.getFirstName()
+                    );
+
+
+            row.createCell(1)
+                    .setCellValue(
+                            patient.getLastName()
+                    );
+
+
+            row.createCell(2)
+                    .setCellValue(
+                            patient.getEmail()
+                    );
+
+
+            row.createCell(3)
+                    .setCellValue(
+                            patient.getRole() != null
+                                    ? patient.getRole().name()
+                                    : ""
+                    );
+        }
+
+
+        // -----------------------------------------------------
+        // AUTO SIZE
+        // -----------------------------------------------------
+
+        for (int i = 0; i < headers.length; i++) {
+
+            sheet.autoSizeColumn(i);
+
+        }
+
+
+        // -----------------------------------------------------
+        // CREATE FILE
+        // -----------------------------------------------------
+
+        ByteArrayOutputStream outputStream =
+                new ByteArrayOutputStream();
+
+        workbook.write(
+                outputStream
+        );
+
+        workbook.close();
+
+        return outputStream.toByteArray();
+    }
+
+
+    // =========================================================
+    // DOCTOR PDF REPORT
+    // =========================================================
+
+    @Override
+    public byte[] generateDoctorPdf()
+            throws IOException {
+
+        List<DoctorProfile> doctors =
+                doctorProfileRepository.findAll();
+
+
+        ByteArrayOutputStream outputStream =
+                new ByteArrayOutputStream();
+
+        Document document =
+                new Document(PageSize.A4.rotate());
+
+        PdfWriter.getInstance(
+                document,
+                outputStream
+        );
+
+        document.open();
+
+
+        // -----------------------------------------------------
+        // TITLE
+        // -----------------------------------------------------
+
+        Font titleFont =
+                new Font(
+                        Font.HELVETICA,
+                        22,
+                        Font.BOLD
+                );
+
+        Paragraph title =
+                new Paragraph(
+                        "AFYASMART",
+                        titleFont
+                );
+
+        title.setAlignment(
+                Paragraph.ALIGN_CENTER
+        );
+
+        document.add(title);
+
+
+        Font subtitleFont =
+                new Font(
+                        Font.HELVETICA,
+                        14,
+                        Font.BOLD
+                );
+
+        Paragraph subtitle =
+                new Paragraph(
+                        "Registered Doctors Report",
+                        subtitleFont
+                );
+
+        subtitle.setAlignment(
+                Paragraph.ALIGN_CENTER
+        );
+
+        document.add(subtitle);
+
+        document.add(
+                new Paragraph(" ")
+        );
+
+
+        // -----------------------------------------------------
+        // INFORMATION
+        // -----------------------------------------------------
+
+        Font informationFont =
+                new Font(
+                        Font.HELVETICA,
+                        9,
+                        Font.NORMAL
+                );
+
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern(
+                        "dd MMMM yyyy, HH:mm"
+                );
+
+        document.add(
+                new Paragraph(
+                        "Generated on: "
+                                + LocalDateTime.now()
+                                .format(formatter),
+                        informationFont
+                )
+        );
+
+        document.add(
+                new Paragraph(
+                        "Total Doctors: "
+                                + doctors.size(),
+                        informationFont
+                )
+        );
+
+        document.add(
+                new Paragraph(" ")
+        );
+
+
+        // -----------------------------------------------------
+        // DOCTOR TABLE
+        // -----------------------------------------------------
+
+        PdfPTable table =
+                new PdfPTable(7);
+
+        table.setWidthPercentage(100);
+
+
+        Font headerFont =
+                new Font(
+                        Font.HELVETICA,
+                        8,
+                        Font.BOLD
+                );
+
+
+        addHeaderCell(
+                table,
+                "Doctor",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Specialization",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Hospital",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "License Number",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Experience",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Consultation Fee",
+                headerFont
+        );
+
+        addHeaderCell(
+                table,
+                "Available",
+                headerFont
+        );
+
+
+        Font dataFont =
+                new Font(
+                        Font.HELVETICA,
+                        7,
+                        Font.NORMAL
+                );
+
+
+        for (DoctorProfile doctor : doctors) {
+
+            String doctorName = "";
+
+            if (doctor.getAccount() != null) {
+
+                doctorName =
+                        doctor.getAccount().getFirstName()
+                                + " "
+                                + doctor.getAccount().getLastName();
+            }
+
+
+            String specialization =
+                    doctor.getSpecialization() != null
+                            ? doctor.getSpecialization().getName()
+                            : "";
+
+
+            String hospital =
+                    doctor.getHospital() != null
+                            ? doctor.getHospital()
+                            : "";
+
+
+            String license =
+                    doctor.getLicenseNumber() != null
+                            ? doctor.getLicenseNumber()
+                            : "";
+
+
+            String experience =
+                    String.valueOf(
+                            doctor.getYearsExperience()
+                    );
+
+
+            String consultationFee =
+                    doctor.getConsultationFee() != null
+                            ? doctor.getConsultationFee().toString()
+                            : "";
+
+
+            String available =
+                    doctor.getAvailable() != null
+                            && doctor.getAvailable()
+                            ? "Yes"
+                            : "No";
+
+
+            addDataCell(
+                    table,
+                    doctorName,
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    specialization,
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    hospital,
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    license,
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    experience,
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    consultationFee,
+                    dataFont
+            );
+
+            addDataCell(
+                    table,
+                    available,
+                    dataFont
+            );
+        }
+
+
+        document.add(table);
+
+
+        // -----------------------------------------------------
+        // FOOTER
+        // -----------------------------------------------------
+
+        document.add(
+                new Paragraph(" ")
+        );
+
+        Font footerFont =
+                new Font(
+                        Font.HELVETICA,
+                        8,
+                        Font.ITALIC
+                );
+
+        Paragraph footer =
+                new Paragraph(
+                        "AfyaSmart Healthcare Management System",
+                        footerFont
+                );
+
+        footer.setAlignment(
+                Paragraph.ALIGN_CENTER
+        );
+
+        document.add(footer);
+
+        document.close();
+
+        return outputStream.toByteArray();
+    }
+
+
+    // =========================================================
+    // DOCTOR EXCEL REPORT
+    // =========================================================
+
+    @Override
+    public byte[] generateDoctorExcel()
+            throws Exception {
+
+        List<DoctorProfile> doctors =
+                doctorProfileRepository.findAll();
+
+
+        Workbook workbook =
+                new XSSFWorkbook();
+
+        Sheet sheet =
+                workbook.createSheet(
+                        "Doctors"
+                );
+
+
+        // -----------------------------------------------------
+        // TITLE
+        // -----------------------------------------------------
+
+        Row titleRow =
+                sheet.createRow(0);
+
+        Cell titleCell =
+                titleRow.createCell(0);
+
+        titleCell.setCellValue(
+                "AfyaSmart Registered Doctors Report"
+        );
+
+
+        org.apache.poi.ss.usermodel.Font titleFont =
+                workbook.createFont();
+
+        titleFont.setBold(true);
+
+        titleFont.setFontHeightInPoints(
+                (short) 16
+        );
+
+        CellStyle titleStyle =
+                workbook.createCellStyle();
+
+        titleStyle.setFont(titleFont);
+
+        titleCell.setCellStyle(
+                titleStyle
+        );
+
+
+        sheet.addMergedRegion(
+                new CellRangeAddress(
+                        0,
+                        0,
+                        0,
+                        6
+                )
+        );
+
+
+        // -----------------------------------------------------
+        // INFORMATION
+        // -----------------------------------------------------
+
+        Row infoRow =
+                sheet.createRow(1);
+
+        infoRow.createCell(0)
+                .setCellValue(
+                        "Total Doctors: "
+                                + doctors.size()
+                );
+
+
+        // -----------------------------------------------------
+        // HEADERS
+        // -----------------------------------------------------
+
+        Row headerRow =
+                sheet.createRow(3);
+
+        String[] headers = {
+
+                "Doctor",
+                "Specialization",
+                "Hospital",
+                "License Number",
+                "Years Experience",
+                "Consultation Fee",
+                "Available"
+
+        };
+
+
+        org.apache.poi.ss.usermodel.Font headerFont =
+                workbook.createFont();
+
+        headerFont.setBold(true);
+
+        CellStyle headerStyle =
+                workbook.createCellStyle();
+
+        headerStyle.setFont(
+                headerFont
+        );
+
+
+        for (int i = 0; i < headers.length; i++) {
+
+            Cell cell =
+                    headerRow.createCell(i);
+
+            cell.setCellValue(
+                    headers[i]
+            );
+
+            cell.setCellStyle(
+                    headerStyle
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // DOCTOR DATA
+        // -----------------------------------------------------
+
+        int rowNumber = 4;
+
+        for (DoctorProfile doctor : doctors) {
+
+            Row row =
+                    sheet.createRow(
+                            rowNumber++
+                    );
+
+
+            String doctorName = "";
+
+            if (doctor.getAccount() != null) {
+
+                doctorName =
+                        doctor.getAccount().getFirstName()
+                                + " "
+                                + doctor.getAccount().getLastName();
+            }
+
+
+            String specialization =
+                    doctor.getSpecialization() != null
+                            ? doctor.getSpecialization().getName()
+                            : "";
+
+
+            row.createCell(0)
+                    .setCellValue(
+                            doctorName
+                    );
+
+
+            row.createCell(1)
+                    .setCellValue(
+                            specialization
+                    );
+
+
+            row.createCell(2)
+                    .setCellValue(
+                            doctor.getHospital() != null
+                                    ? doctor.getHospital()
+                                    : ""
+                    );
+
+
+            row.createCell(3)
+                    .setCellValue(
+                            doctor.getLicenseNumber() != null
+                                    ? doctor.getLicenseNumber()
+                                    : ""
+                    );
+
+
+            row.createCell(4)
+                    .setCellValue(
+                            doctor.getYearsExperience()
+                    );
+
+
+            row.createCell(5)
+                    .setCellValue(
+                            doctor.getConsultationFee() != null
+                                    ? doctor.getConsultationFee()
+                                    .doubleValue()
+                                    : 0
+                    );
+
+
+            row.createCell(6)
+                    .setCellValue(
+                            doctor.getAvailable() != null
+                                    && doctor.getAvailable()
+                                    ? "Yes"
+                                    : "No"
+                    );
+        }
+
+
+        // -----------------------------------------------------
+        // AUTO SIZE
+        // -----------------------------------------------------
+
+        for (int i = 0; i < headers.length; i++) {
+
+            sheet.autoSizeColumn(i);
+
+        }
+
+
+        // -----------------------------------------------------
+        // CREATE FILE
+        // -----------------------------------------------------
+
+        ByteArrayOutputStream outputStream =
+                new ByteArrayOutputStream();
+
+        workbook.write(
+                outputStream
+        );
+
+        workbook.close();
+
         return outputStream.toByteArray();
     }
 
@@ -834,9 +1594,6 @@ public class ReportServiceImpl implements ReportService {
     // PDF HEADER CELL HELPER
     // =========================================================
 
-    /**
-     * Adds a formatted header cell to the PDF table.
-     */
     private void addHeaderCell(
             PdfPTable table,
             String text,
@@ -851,14 +1608,11 @@ public class ReportServiceImpl implements ReportService {
                         )
                 );
 
-
         cell.setHorizontalAlignment(
                 PdfPCell.ALIGN_CENTER
         );
 
-
         cell.setPadding(5);
-
 
         table.addCell(cell);
     }
@@ -868,9 +1622,6 @@ public class ReportServiceImpl implements ReportService {
     // PDF DATA CELL HELPER
     // =========================================================
 
-    /**
-     * Adds a normal data cell to the PDF table.
-     */
     private void addDataCell(
             PdfPTable table,
             String text,
@@ -880,19 +1631,18 @@ public class ReportServiceImpl implements ReportService {
         PdfPCell cell =
                 new PdfPCell(
                         new Phrase(
-                                text,
+                                text != null
+                                        ? text
+                                        : "",
                                 font
                         )
                 );
 
-
         cell.setPadding(4);
-
 
         cell.setVerticalAlignment(
                 PdfPCell.ALIGN_MIDDLE
         );
-
 
         table.addCell(cell);
     }

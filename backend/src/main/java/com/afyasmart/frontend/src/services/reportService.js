@@ -5,34 +5,21 @@ import api from "./api";
  * AfyaSmart - Report Service
  * ============================================================
  *
- * This file contains all API functions related to reports.
+ * Handles downloading PDF and Excel reports from the
+ * AfyaSmart backend.
  *
- * The backend generates the actual report files.
- * The frontend simply requests the file and downloads it.
- *
- * Current reports:
- *
- * 1. Appointment PDF
- * 2. Appointment Excel
- *
+ * Available reports:
+ * - Appointments
+ * - Patients
+ * - Doctors
  * ============================================================
  */
 
+// ============================================================
+// APPOINTMENT REPORTS
+// ============================================================
 
-/**
- * ============================================================
- * Download Appointment PDF
- * ============================================================
- *
- * Calls:
- *
- * GET /api/reports/appointments/pdf
- *
- * The response is returned as a Blob because a PDF is a
- * binary file rather than normal JSON data.
- */
 export const downloadAppointmentPdf = async () => {
-
     const response = await api.get(
         "/reports/appointments/pdf",
         {
@@ -43,23 +30,63 @@ export const downloadAppointmentPdf = async () => {
     return response.data;
 };
 
-
-/**
- * ============================================================
- * Download Appointment Excel
- * ============================================================
- *
- * Calls:
- *
- * GET /api/reports/appointments/excel
- *
- * The response is returned as a Blob because an Excel workbook
- * is a binary file.
- */
 export const downloadAppointmentExcel = async () => {
-
     const response = await api.get(
         "/reports/appointments/excel",
+        {
+            responseType: "blob"
+        }
+    );
+
+    return response.data;
+};
+
+
+// ============================================================
+// PATIENT REPORTS
+// ============================================================
+
+export const downloadPatientPdf = async () => {
+    const response = await api.get(
+        "/reports/patients/pdf",
+        {
+            responseType: "blob"
+        }
+    );
+
+    return response.data;
+};
+
+export const downloadPatientExcel = async () => {
+    const response = await api.get(
+        "/reports/patients/excel",
+        {
+            responseType: "blob"
+        }
+    );
+
+    return response.data;
+};
+
+
+// ============================================================
+// DOCTOR REPORTS
+// ============================================================
+
+export const downloadDoctorPdf = async () => {
+    const response = await api.get(
+        "/reports/doctors/pdf",
+        {
+            responseType: "blob"
+        }
+    );
+
+    return response.data;
+};
+
+export const downloadDoctorExcel = async () => {
+    const response = await api.get(
+        "/reports/doctors/excel",
         {
             responseType: "blob"
         }

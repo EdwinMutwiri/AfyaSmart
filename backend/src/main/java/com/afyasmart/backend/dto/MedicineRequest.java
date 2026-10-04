@@ -4,60 +4,80 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
-/**
- * ============================================================
- * AfyaSmart - Medicine Request DTO
- * ============================================================
- *
- * Carries medicine information from the frontend to the
- * backend when creating or updating a medicine reminder.
- * ============================================================
- */
 @Data
 public class MedicineRequest {
 
-    /**
+    /*
      * Patient account ID.
      */
     private Long accountId;
 
-    /**
+    /*
      * Name of the medicine.
+     *
+     * Example:
+     * Paracetamol
      */
     private String medicineName;
 
-    /**
-     * Dosage information.
+    /*
+     * Dosage.
      *
      * Example:
      * 500 mg
-     * 2 tablets
      */
     private String dosage;
 
-    /**
-     * How frequently the medicine should be taken.
+    /*
+     * Frequency.
+     *
+     * Examples:
+     * Once daily
+     * Twice daily
+     * 3 times daily
+     * 4 times daily
+     * As needed
      */
     private String frequency;
 
-    /**
-     * Date the medicine schedule starts.
+    /*
+     * Date medication starts.
      */
     private LocalDate startDate;
 
-    /**
-     * Date the medicine schedule ends.
+    /*
+     * Optional medication end date.
      */
     private LocalDate endDate;
 
-    /**
-     * Time of the medicine reminder.
+    /*
+     * ---------------------------------------------------------
+     * MULTIPLE REMINDER TIMES
+     * ---------------------------------------------------------
+     *
+     * Example for 3 times daily:
+     *
+     * [
+     *     "07:30",
+     *     "13:00",
+     *     "19:00"
+     * ]
+     *
+     * Example for 4 times daily:
+     *
+     * [
+     *     "07:30",
+     *     "12:00",
+     *     "18:00",
+     *     "00:00"
+     * ]
      */
-    private LocalTime reminderTime;
+    private List<LocalTime> reminderTimes;
 
-    /**
-     * Additional instructions.
+    /*
+     * Instructions for taking the medicine.
      *
      * Example:
      * Take after meals.
